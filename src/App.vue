@@ -8,13 +8,13 @@
 </template>
 
 <script>
-  export default {
+export default {
+  methods: {
+  },
     data: () => ({
     }),
     props: {
       source: String
-    },
-    methods: {
     },
   }
 </script>

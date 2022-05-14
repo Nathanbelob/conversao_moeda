@@ -43,9 +43,9 @@ export default {
        submit()
        {
         axios({url: 'http://apiconversaomoeda.local:81/api/login',  data: {email: this.email, password: this.password},  method: 'POST'})
-        .then((response) => {
-          localStorage.token = response.data.access_token;
-          this.$router.push({ name: 'home'});
+        .then((resp) => {
+          localStorage.token = resp.data.access_token;
+          window.location.href = "http://localhost:8080/home"
         })
         .catch((err) => {
           console.log(err)

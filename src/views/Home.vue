@@ -1,4 +1,14 @@
 <template>
+<div>
+  <VueSidebarMenuAkahon :menuItems="menu"
+  menuTitle=""
+  :isSearch="false"
+  profileRole=""
+  :profileName="nomeUsuario"
+  menuIcon=""
+  profileImg=""
+  @button-exit-clicked="logout"
+  />
   <form>
     <v-select
       v-model="moedaOrigemDefault"
@@ -37,14 +47,33 @@
     >
       Converter
     </v-btn>
+    <v-tooltip
+          v-model="showA"
+          top
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              icon
+              v-bind="attrs"
+              v-on="on"
+            >
+            <v-icon
+            >info
+            </v-icon>
+            </v-btn>
+          </template>
+          <span>Ao clicar em converter as cotações são exibidas na tela e enviadas para o email cadastrado.</span>
+        </v-tooltip>
   <ModalResultado 
    :show="ModalResultado.show"
    :data="data"
    @callback="fechaModal"/>
   </form>
+  </div>
 </template>
 <script>
 import axios from 'axios';
+import VueSidebarMenuAkahon from "vue-sidebar-menu-akahon";
 
 export default {
   url: process.env.VUE_APP_BASE_URI_API_CONVERSAO_MOEDA,
@@ -53,12 +82,38 @@ export default {
     msg: String
   },
   components: {
-    ModalResultado: () => import('../components/ModalResultado.vue')
+    ModalResultado: () => import('../components/ModalResultado.vue'),
+    VueSidebarMenuAkahon
   },
-    methods: {
+  mounted() {
+    this.initialize();
+  },
+  methods: {
+      logout(){
+      localStorage.removeItem('token');
+      window.location.href = "http://localhost:8080"
+    },
       fechaModal(request)
       {
         this.ModalResultado.show = request;
+      },
+      initialize()
+      {
+        this.$http({url: 'http://apiconversaomoeda.local:81/api/initialize',  method: 'GET'})
+        .then((response) => {
+          this.data = response.data;
+          if(response.status == 200)
+          {
+            this.moedaDestino = response.data.moedas;
+            this.nomeUsuario = response.data.usuario.nome;
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+        .finally(() => {
+          this.loading = false;
+        })
       },
       submit()
       {
@@ -90,7 +145,13 @@ export default {
      ModalResultado: {
         show: false
       },
+     nomeUsuario: '',
+     menu: [
+       {link: "/home",name: "Home", tooltip: "Home", icon: "bx-grid-alt" },
+       {link: "/historico",name: "Histórico", tooltip: "Histórico", icon: "bx-grid-alt" },
+       ],  
     data: {},
+    showA: false,
     valor: "0.0",
     loading: false,
     pagamento: '',
@@ -113,11 +174,7 @@ export default {
       moedaOrigem: [
         'BRL',
       ],
-      moedaDestino: [
-        'DLR',
-        'BTC',
-        'EUR'
-      ],
+      moedaDestino: [],
       moedaOrigemDefault: {
         name: "BRL"
       },
@@ -140,5 +197,9 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang="stylus">
+<style>
+* {
+    padding: 5px;
+    margin: 0;
+}
 </style>

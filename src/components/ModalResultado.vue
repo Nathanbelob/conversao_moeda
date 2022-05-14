@@ -20,7 +20,6 @@
           <v-list>Taxa de pagamento: R${{data.taxa_pagamento}}</v-list>
           <v-list>Taxa de conversão: R${{data.taxa_conversao}}</v-list>
           <v-list>Valor utilizado para conversão descontando as taxas: R${{data.valor_usado_conversao}}</v-list>
-          <v-alert>Obs: Os valores foram enviados para o seu email.</v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
