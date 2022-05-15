@@ -1,25 +1,34 @@
 <template>
 <div>
-  <VueSidebarMenuAkahon :menuItems="menu"
-  menuTitle=""
-  :isSearch="false"
-  profileRole=""
-  :profileName="nomeUsuario"
-  menuIcon=""
-  profileImg=""
-  @button-exit-clicked="logout"
-  />
+  <MenuLateral/>
   <v-data-table
     :headers="headers"
-    :items="desserts"
+    :items="historico"
     :items-per-page="5"
     class="elevation-1"
-  ></v-data-table>
+  >
+    <template v-slot:item.valor_para_conversao="{ item }">
+      <span>R${{item.valor_para_conversao}}</span>
+    </template>
+    <template v-slot:item.valor_moeda_conversao="{ item }">
+      <span>${{item.valor_moeda_conversao}}</span>
+    </template>
+    <template v-slot:item.valor_comprado_moeda_destino="{ item }">
+      <span>${{item.valor_comprado_moeda_destino}}</span>
+    </template>
+    <template v-slot:item.taxa_pagamento="{ item }">
+      <span>R${{item.taxa_pagamento}}</span>
+    </template>
+    <template v-slot:item.taxa_conversao="{ item }">
+      <span>R${{item.taxa_conversao}}</span>
+    </template>
+    <template v-slot:item.valor_usado_conversao="{ item }">
+      <span>R${{item.valor_usado_conversao}}</span>
+    </template>
+    </v-data-table>
   </div>
 </template>
 <script>
-
-import VueSidebarMenuAkahon from "vue-sidebar-menu-akahon";
 
 export default {
   url: process.env.VUE_APP_BASE_URI_API_CONVERSAO_MOEDA,
@@ -28,15 +37,29 @@ export default {
     msg: String
   },
   components: {
-    VueSidebarMenuAkahon
+    MenuLateral: () => import('../components/MenuLateral.vue')
   },
   mounted() {
     this.initialize();
   },
   methods: {
-      logout(){
-      localStorage.removeItem('token');
-      window.location.href = "http://localhost:8080"
+      logout()
+      {
+        this.$http({url: 'http://apiconversaomoeda.local:81/api/logout',  method: 'POST'})
+          .then((response) => {
+            this.data = response.data;
+            if(response.status == 200)
+            {
+                localStorage.removeItem('token');
+                window.location.href = "http://localhost:8080"
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+          .finally(() => {
+            this.loading = false;
+          })
       },
       fechaModal(request)
       {
@@ -44,12 +67,12 @@ export default {
       },
       initialize()
       {
-        this.$http({url: 'http://apiconversaomoeda.local:81/api/initialize',  method: 'GET'})
+        this.$http({url: 'http://apiconversaomoeda.local:81/api/historico/initialize',  method: 'GET'})
         .then((response) => {
-          this.data = response.data;
           if(response.status == 200)
           {
-            this.nomeUsuario = response.data.usuario.nome;
+            this.historico = response.data;
+            console.log(this.historico); 
           }
         })
         .catch((err) => {
@@ -61,106 +84,19 @@ export default {
       },
     },
    data: () => ({
-     nomeUsuario: '',
-     menu: [
-       {link: "/home",name: "Home", tooltip: "Home", icon: "bx-grid-alt" },
-       {link: "/historico",name: "Histórico", tooltip: "Histórico", icon: "bx-grid-alt" },
-       ],  
       headers: [
-          {
-            text: 'Dessert (100g serving)',
-            align: 'start',
-            sortable: false,
-            value: 'name',
-          },
-          { text: 'Calories', value: 'calories' },
-          { text: 'Fat (g)', value: 'fat' },
-          { text: 'Carbs (g)', value: 'carbs' },
-          { text: 'Protein (g)', value: 'protein' },
-          { text: 'Iron (%)', value: 'iron' },
+          {text: 'Moeda Origem', align: 'start', sortable: false, value: 'moeda_origem'},
+          {text: 'Moeda Destino:', align: 'start', sortable: false, value: 'moeda_destino'},
+          {text: 'Forma Pagamento', align: 'start', sortable: false, value: 'forma_pagamento'},
+          {text: 'Valor para conversão', align: 'start', sortable: false, value: 'valor_para_conversao'},
+          {text: 'Valor da "Moeda de destino" usado para conversão', align: 'start', sortable: false, value: 'valor_moeda_conversao'},
+          {text: 'Valor comprado em "Moeda de destino"', align: 'start', sortable: false, value: 'valor_comprado_moeda_destino'},
+          {text: 'Taxa de pagamento', align: 'start', sortable: false, value: 'taxa_pagamento'},
+          {text: 'Taxa de conversão', align: 'start', sortable: false, value: 'taxa_conversao'},
+          {text: 'Valor utilizado para conversão descontando as taxas:', align: 'start', sortable: false, value: 'valor_usado_conversao'},
+          {text: 'Data', align: 'start', sortable: false, value: 'created_at', width: "15%"}
         ],
-        desserts: [
-          {
-            name: 'Frozen Yogurt',
-            calories: 159,
-            fat: 6.0,
-            carbs: 24,
-            protein: 4.0,
-            iron: '1%',
-          },
-          {
-            name: 'Ice cream sandwich',
-            calories: 237,
-            fat: 9.0,
-            carbs: 37,
-            protein: 4.3,
-            iron: '1%',
-          },
-          {
-            name: 'Eclair',
-            calories: 262,
-            fat: 16.0,
-            carbs: 23,
-            protein: 6.0,
-            iron: '7%',
-          },
-          {
-            name: 'Cupcake',
-            calories: 305,
-            fat: 3.7,
-            carbs: 67,
-            protein: 4.3,
-            iron: '8%',
-          },
-          {
-            name: 'Gingerbread',
-            calories: 356,
-            fat: 16.0,
-            carbs: 49,
-            protein: 3.9,
-            iron: '16%',
-          },
-          {
-            name: 'Jelly bean',
-            calories: 375,
-            fat: 0.0,
-            carbs: 94,
-            protein: 0.0,
-            iron: '0%',
-          },
-          {
-            name: 'Lollipop',
-            calories: 392,
-            fat: 0.2,
-            carbs: 98,
-            protein: 0,
-            iron: '2%',
-          },
-          {
-            name: 'Honeycomb',
-            calories: 408,
-            fat: 3.2,
-            carbs: 87,
-            protein: 6.5,
-            iron: '45%',
-          },
-          {
-            name: 'Donut',
-            calories: 452,
-            fat: 25.0,
-            carbs: 51,
-            protein: 4.9,
-            iron: '22%',
-          },
-          {
-            name: 'KitKat',
-            calories: 518,
-            fat: 26.0,
-            carbs: 65,
-            protein: 7,
-            iron: '6%',
-          },
-        ],
+        historico: [],
     }),
     }
 
@@ -170,4 +106,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
+.v-data-table-item th {
+  white-space: nowrap;
+}
 </style>

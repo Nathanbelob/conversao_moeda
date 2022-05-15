@@ -1,15 +1,8 @@
 <template>
 <div>
-  <VueSidebarMenuAkahon :menuItems="menu"
-  menuTitle=""
-  :isSearch="false"
-  profileRole=""
-  :profileName="nomeUsuario"
-  menuIcon=""
-  profileImg=""
-  @button-exit-clicked="logout"
-  />
-  <form>
+<MenuLateral/>
+  <v-form ref="form"
+  lazy-validation>
     <v-select
       v-model="moedaOrigemDefault"
       :items="moedaOrigem"
@@ -23,6 +16,7 @@
       v-model="destino"
       :items="moedaDestino"
       label="Moeda Destino"
+      :rules="[v => !!v || 'Selecione uma moeda de destino']"
       required
     ></v-select>
     <v-select
@@ -30,15 +24,21 @@
       :items="formaPagamento"
       item-text="name"
       item-value="value"
+      :rules="[v => !!v || 'Selecione uma forma de pagamento']"
       label="Forma de Pagamento"
       required
     ></v-select>
     <vuetify-money
       v-model="valor"
-      label="Valor para conversão"
-      placeholder="placeholder"
+      v-bind:label="label"
+      v-bind:placeholder="placeholder"
+      v-bind:rules="rules"
+      v-bind:readonly="readonly"
+      v-bind:disabled="disabled"
+      v-bind:outlined="outlined"
       v-bind:valueWhenIsEmpty="valueWhenIsEmpty"
       v-bind:options="options"
+      v-bind:properties="properties"
     />
     <v-btn
       class="mr-4"
@@ -68,12 +68,11 @@
    :show="ModalResultado.show"
    :data="data"
    @callback="fechaModal"/>
-  </form>
+  </v-form>
   </div>
 </template>
 <script>
 import axios from 'axios';
-import VueSidebarMenuAkahon from "vue-sidebar-menu-akahon";
 
 export default {
   url: process.env.VUE_APP_BASE_URI_API_CONVERSAO_MOEDA,
@@ -83,23 +82,19 @@ export default {
   },
   components: {
     ModalResultado: () => import('../components/ModalResultado.vue'),
-    VueSidebarMenuAkahon
+    MenuLateral: () => import('../components/MenuLateral.vue'),
   },
   mounted() {
     this.initialize();
   },
   methods: {
-      logout(){
-      localStorage.removeItem('token');
-      window.location.href = "http://localhost:8080"
-    },
       fechaModal(request)
       {
         this.ModalResultado.show = request;
       },
       initialize()
       {
-        this.$http({url: 'http://apiconversaomoeda.local:81/api/initialize',  method: 'GET'})
+        this.$http({url: 'http://apiconversaomoeda.local:81/api/conversao/initialize',  method: 'GET'})
         .then((response) => {
           this.data = response.data;
           if(response.status == 200)
@@ -117,68 +112,77 @@ export default {
       },
       submit()
       {
-        const data = {
-          moeda_origem: this.moedaOrigemDefault.name,
-          moeda_destino: this.destino,
-          forma_pagamento: this.pagamento,
-          valor: this.valor
-        }
-        this.ModalResultado.show = false;
-        this.loading = true;
-        axios({url: 'http://apiconversaomoeda.local:81/api/conversao',  data: data,  method: 'POST'})
-        .then((response) => {
-          this.data = response.data;
-          if(response.status == 200)
-          {
-            this.ModalResultado.show = true;
+        if(this.$refs.form.validate()){
+          const data = {
+            moeda_origem: this.moedaOrigemDefault.name,
+            moeda_destino: this.destino,
+            forma_pagamento: this.pagamento,
+            valor: parseFloat(this.valor)
           }
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-        .finally(() => {
-          this.loading = false;
-        })
+          this.ModalResultado.show = false;
+          this.loading = true;
+          axios({url: 'http://apiconversaomoeda.local:81/api/conversao',  data: data,  method: 'POST'})
+          .then((response) => {
+            this.data = response.data.data;
+            if(response.status == 200)
+            {
+              this.ModalResultado.show = true;
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+          .finally(() => {
+            this.loading = false;
+          })
+        }
       }
     },
    data: () => ({
-     ModalResultado: {
-        show: false
-      },
-     nomeUsuario: '',
-     menu: [
-       {link: "/home",name: "Home", tooltip: "Home", icon: "bx-grid-alt" },
-       {link: "/historico",name: "Histórico", tooltip: "Histórico", icon: "bx-grid-alt" },
-       ],  
-    data: {},
-    showA: false,
-    valor: "0.0",
-    loading: false,
-    pagamento: '',
-    destino: '',
+    valor: "0",
+    label: "Valor para conversão",
+    placeholder: " ",
+    rules: [v  => {
+      v = v.replace('.', '').replace(",",".");
+      console.log(parseFloat(v))
+      if (!isNaN(parseFloat(v)) && v >= 1000 && v <= 100000) return true;
+      return 'O valor para conversão deve ser entre R$1.000 e R$100.000';
+    }],
     readonly: false,
     disabled: false,
-    outlined: true,
-    clearable: true,
+    outlined: false,
     valueWhenIsEmpty: "",
     options: {
       locale: "pt-BR",
       prefix: "R$",
       suffix: "",
       length: 11,
-      precision: 2
+      precision: 2,
     },
-      name: '',
-      email: '',
-      select: null,
-      moedaOrigem: [
-        'BRL',
-      ],
-      moedaDestino: [],
-      moedaOrigemDefault: {
+    properties: {
+      hint: "O valor para conversão deve ser entre R$1.000 e R$100.000",
+    },
+     ModalResultado: {
+        show: false
+      },
+    data: {},
+    showA: false,
+    loading: false,
+    pagamento: '',
+    destino: '',
+    currency: "R$",
+    initialBalance: null,
+    name: '',
+    email: '',
+    select: null,
+    moedaOrigem: [
+      'BRL',
+    ],
+    moedaDestino: [],
+    moedaOrigemDefault: {
         name: "BRL"
       },
-       formaPagamento: [
+    formaPagamento: [
         {
           name: 'Boleto',
           value: 'BLT'
@@ -189,8 +193,8 @@ export default {
         }
       ],
       checkbox: false,
-    }),
-    }
+  }),
+}
 
 
 
