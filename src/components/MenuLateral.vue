@@ -21,9 +21,8 @@ import VueSidebarMenuAkahon from "vue-sidebar-menu-akahon"
     },
     methods: {
     initialize(){
-      this.$http({url: 'http://apiconversaomoeda.local:81/api/usuario/initialize',  method: 'GET'})
+      this.$http({url: this.url+'/usuario/initialize',  method: 'GET'})
         .then((response) => {
-          console.log(response);
           if(response.status == 200)
           {
               this.nomeUsuario = response.data.nome;
@@ -37,12 +36,12 @@ import VueSidebarMenuAkahon from "vue-sidebar-menu-akahon"
         })
     },
     logout(){
-      this.$http({url: 'http://apiconversaomoeda.local:81/api/logout',  method: 'POST'})
+      this.$http({url: this.url+'/logout',  method: 'POST'})
         .then((response) => {
           if(response.status == 200)
           {
               localStorage.removeItem('token');
-              window.location.href = "http://localhost:8080"
+              window.location.href = this.urlLocal;
           }
         })
         .catch((err) => {
@@ -54,10 +53,12 @@ import VueSidebarMenuAkahon from "vue-sidebar-menu-akahon"
      },
     },
     data: () => ({
+    url: process.env.VUE_APP_API_URL,
+    urlLocal: process.env.VUE_APP_URL,
      nomeUsuario: '',
      menu: [
        {link: "/home",name: "Home", tooltip: "Home", icon: "bx-grid-alt" },
-       {link: "/historico",name: "Histórico", tooltip: "Histórico", icon: "bx-grid-alt" },
+       {link: "/historico",name: "Histórico", tooltip: "Histórico", icon: "bx-history" },
        ], 
     }),
   }

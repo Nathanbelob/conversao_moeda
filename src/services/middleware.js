@@ -1,6 +1,8 @@
 export default {
     auth(to, from, next)
     {
+        console.log(to);
+
         const token = localStorage.token;
         if(!token)
         {
@@ -8,7 +10,16 @@ export default {
         }
 
         next();
-        console.log(token);
-        console.log(to, from, next)
+    },
+
+    redirectIfAuth(to, from, next)
+    {
+        const token = localStorage.token;
+        if(token)
+        {
+            next('/home');
+        }
+
+        next();
     }
 }

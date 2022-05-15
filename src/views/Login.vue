@@ -39,13 +39,18 @@ export default {
    props: {
       source: String,
    },
+    data: () => ({
+      url: process.env.VUE_APP_API_URL,
+      urlLocal: process.env.VUE_APP_URL,
+    }),
    methods: {
        submit()
        {
-        axios({url: 'http://apiconversaomoeda.local:81/api/login',  data: {email: this.email, password: this.password},  method: 'POST'})
+           console.log(this.urlLocal);
+        axios({url: this.url+'/login',  data: {email: this.email, password: this.password},  method: 'POST'})
         .then((resp) => {
           localStorage.token = resp.data.access_token;
-          window.location.href = "http://localhost:8080/home"
+          window.location.href = this.urlLocal+'/home';
         })
         .catch((err) => {
           console.log(err)

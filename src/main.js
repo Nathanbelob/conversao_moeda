@@ -12,13 +12,10 @@ import '@mdi/font/css/materialdesignicons.css'
 import "./plugins/vuetify-money.js";
 import "./plugins/axios.js";
 
-
 Vue.config.productionTip = false;
 
 Vue.use(VueRouter);
 Vue.use(VueSidebarMenuAkahon);
-
-
 
 const router = new VueRouter({
   mode: 'history', 
@@ -39,7 +36,8 @@ const router = new VueRouter({
     { 
       path: '/', 
       name: 'login',
-      component: Login
+      component: Login,
+      beforeEnter: Guard.redirectIfAuth
     },
   ]
 });

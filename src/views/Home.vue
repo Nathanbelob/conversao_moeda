@@ -75,7 +75,6 @@
 import axios from 'axios';
 
 export default {
-  url: process.env.VUE_APP_BASE_URI_API_CONVERSAO_MOEDA,
   name: 'Home',
   props: {
     msg: String
@@ -94,7 +93,7 @@ export default {
       },
       initialize()
       {
-        this.$http({url: 'http://apiconversaomoeda.local:81/api/conversao/initialize',  method: 'GET'})
+        this.$http({url: this.url+'/conversao/initialize',  method: 'GET'})
         .then((response) => {
           this.data = response.data;
           if(response.status == 200)
@@ -121,7 +120,7 @@ export default {
           }
           this.ModalResultado.show = false;
           this.loading = true;
-          axios({url: 'http://apiconversaomoeda.local:81/api/conversao',  data: data,  method: 'POST'})
+          this.$http({url: this.url+'/conversao',  data: data,  method: 'POST'})
           .then((response) => {
             this.data = response.data.data;
             if(response.status == 200)
@@ -139,12 +138,12 @@ export default {
       }
     },
    data: () => ({
+    url: process.env.VUE_APP_API_URL,
     valor: "0",
     label: "Valor para conversão",
     placeholder: " ",
     rules: [v  => {
       v = v.replace('.', '').replace(",",".");
-      console.log(parseFloat(v))
       if (!isNaN(parseFloat(v)) && v >= 1000 && v <= 100000) return true;
       return 'O valor para conversão deve ser entre R$1.000 e R$100.000';
     }],
@@ -202,8 +201,4 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
-* {
-    padding: 5px;
-    margin: 0;
-}
 </style>

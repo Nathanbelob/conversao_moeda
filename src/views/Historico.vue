@@ -2,6 +2,7 @@
 <div>
   <MenuLateral/>
   <v-data-table
+    :loading="loading"
     :headers="headers"
     :items="historico"
     :items-per-page="5"
@@ -43,36 +44,13 @@ export default {
     this.initialize();
   },
   methods: {
-      logout()
-      {
-        this.$http({url: 'http://apiconversaomoeda.local:81/api/logout',  method: 'POST'})
-          .then((response) => {
-            this.data = response.data;
-            if(response.status == 200)
-            {
-                localStorage.removeItem('token');
-                window.location.href = "http://localhost:8080"
-            }
-          })
-          .catch((err) => {
-            console.log(err)
-          })
-          .finally(() => {
-            this.loading = false;
-          })
-      },
-      fechaModal(request)
-      {
-        this.ModalResultado.show = request;
-      },
       initialize()
       {
-        this.$http({url: 'http://apiconversaomoeda.local:81/api/historico/initialize',  method: 'GET'})
+        this.$http({url: this.url+'/historico/initialize',  method: 'GET'})
         .then((response) => {
           if(response.status == 200)
           {
             this.historico = response.data;
-            console.log(this.historico); 
           }
         })
         .catch((err) => {
@@ -84,6 +62,7 @@ export default {
       },
     },
    data: () => ({
+      url: process.env.VUE_APP_API_URL,
       headers: [
           {text: 'Moeda Origem', align: 'start', sortable: false, value: 'moeda_origem'},
           {text: 'Moeda Destino:', align: 'start', sortable: false, value: 'moeda_destino'},
@@ -97,6 +76,7 @@ export default {
           {text: 'Data', align: 'start', sortable: false, value: 'created_at', width: "15%"}
         ],
         historico: [],
+        loading: true
     }),
     }
 
